@@ -1,7 +1,6 @@
 import os
 import time
 
-import requests
 from playwright.sync_api import sync_playwright
 
 
@@ -39,9 +38,16 @@ def scrape_chapter_images(base_url, chapter_number, output_folder):
     chapter_url = base_url.format(number=chapter_number)
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         page = browser.new_page()
         page.goto(chapter_url)
+        
+         # Buscar si la página contiene el mensaje de error
+        error_element = page.query_selector('div.font-bold.text-4xl.text-center')
+        
+        if error_element and '404 - Waifu Page Not Found' in error_element.text_content():
+            print(f"Capítulo {chapter_number} no disponible (Error 404). Terminando descarga.")
+            return False
 
         # Wait for the page to load completely
         page.wait_for_selector('h1.text-lg')  # Ensure the header is loaded
@@ -76,16 +82,15 @@ def scrape_chapter_images(base_url, chapter_number, output_folder):
 
 def main():
     base_url = "https://ww4.readvinlandsaga.com/chapter/vinland-saga-chapter-{number}/"
-    output_folder = "vinland_saga_images"  # Directory to save images
-    chapters_to_download = [215, 216, 217]  # Example chapter numbers
-
+    output_folder = "C:/me/content/manga-videos/mangas/vinland-saga/"  # Directory to save images
+    chapter = 12
+     
     os.makedirs(output_folder, exist_ok=True)
 
-    for chapter in chapters_to_download:
+    while True:
+        print(f"Intentando descargar el capítulo {chapter}...")
         scrape_chapter_images(base_url, chapter, output_folder)
+        chapter += 1  # Incrementamos el número del capítulo
 
 if __name__ == "__main__":
-    main()
-if __name__ == "__main__":
-    main()
     main()
